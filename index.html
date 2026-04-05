@@ -2,107 +2,154 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SixNine Garage - Premium</title>
+    <title>SixNine Garage - Professional System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <style>
-        body { background: #0f0c29; color: white; font-family: sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-        .card-sixnine { background: #16213e; padding: 30px; border-radius: 20px; width: 100%; max-width: 400px; border: 1px solid #00d1ff; box-shadow: 0 0 20px rgba(0, 209, 255, 0.2); }
-        .btn-duty { height: 60px; font-weight: bold; width: 100%; border-radius: 12px; margin-top: 15px; border: none; color: white; }
+        body { background: #0f0c29; color: white; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
+        .card-sixnine { background: #1a1a2e; padding: 30px; border-radius: 20px; width: 95%; max-width: 500px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .status-indicator { width: 100px; height: 100px; border-radius: 50%; margin: 20px auto; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 4px solid #444; transition: 0.5s; }
+        .on-style { border-color: #00ff88; color: #00ff88; box-shadow: 0 0 15px #00ff88; }
+        .off-style { border-color: #ff4444; color: #ff4444; box-shadow: 0 0 15px #ff4444; }
+        .btn-duty { height: 60px; font-weight: bold; width: 100%; border-radius: 12px; margin-top: 10px; border: none; color: white; transition: 0.3s; }
         .hidden { display: none; }
+        .form-control { background: #252545; border: 1px solid #444; color: white; margin-bottom: 10px; }
+        .form-control:focus { background: #2d2d55; color: white; border-color: #00d1ff; box-shadow: none; }
     </style>
 </head>
 <body>
 
     <div class="card-sixnine text-center">
         <div id="authBox">
-            <h2 class="fw-bold text-info">LOGIN SYSTEM</h2>
-            <input type="email" id="email" class="form-control mb-2 mt-4" placeholder="Email Mekanik">
-            <input type="password" id="pass" class="form-control mb-2" placeholder="Password">
-            <input type="text" id="namaLengkap" class="form-control mb-2 hidden" placeholder="Nama Lengkap">
+            <img src="https://i.imgur.com/your-logo-link.png" alt="Logo" style="width: 80px; margin-bottom: 10px;">
+            <h3 class="fw-bold">SIXNINE GARAGE</h3>
+            <p class="text-secondary small mb-4">Sistem Absensi Karyawan</p>
             
-            <button onclick="login()" id="btnLogin" class="btn btn-info w-100 mt-2">MASUK</button>
-            <button onclick="register()" id="btnReg" class="btn btn-success w-100 mt-2 hidden">DAFTAR AKUN</button>
-            <a href="#" onclick="toggleAuth()" id="linkAuth" class="small d-block mt-3 text-secondary text-decoration-none">Belum punya akun? Daftar</a>
+            <div id="regFields" class="hidden">
+                <input type="text" id="regNama" class="form-control" placeholder="Nama Lengkap Mekanik">
+            </div>
+            <input type="text" id="logNama" class="form-control" placeholder="Nama Mekanik (Contoh: Gavyn Dvinzy)">
+            <input type="password" id="pass" class="form-control" placeholder="Password PIN">
+
+            <button onclick="handleLogin()" id="btnLogin" class="btn btn-primary w-100 mt-2">MASUK</button>
+            <button onclick="handleRegister()" id="btnReg" class="btn btn-success w-100 mt-2 hidden">DAFTAR KARYAWAN BARU</button>
+            
+            <a href="#" onclick="toggleAuth()" id="linkAuth" class="small d-block mt-3 text-info text-decoration-none">Daftar Karyawan Baru</a>
         </div>
 
         <div id="dashBox" class="hidden">
-            <h3 id="userHello" class="text-info fw-bold">Halo!</h3>
-            <h1 id="jam" class="display-5 fw-bold">00:00:00</h1>
-            <p id="tgl" class="text-secondary"></p>
-            <hr>
-            <button onclick="absen('ON DUTY')" class="btn-duty" style="background:#007bff">🕒 ON DUTY</button>
-            <button onclick="absen('OFF DUTY')" class="btn-duty" style="background:#dc3545">🌙 OFF DUTY</button>
-            <button onclick="logout()" class="btn btn-sm btn-outline-danger mt-4">Log Out</button>
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="text-start">
+                    <h5 id="userName" class="fw-bold mb-0">Nama Mekanik</h5>
+                    <span class="badge bg-secondary" style="font-size: 10px;">V1.2.7 EXPERT</span>
+                </div>
+                <button onclick="logout()" class="btn btn-sm btn-outline-danger">Keluar</button>
+            </div>
+
+            <div id="statusIcon" class="status-indicator off-style">OFF DUTY</div>
+            <h1 id="jam" class="display-6 fw-bold">00:00:00</h1>
+            <p id="tgl" class="small text-secondary"></p>
+
+            <div class="row g-2">
+                <div class="col-6">
+                    <button onclick="kirimAbsen('ON DUTY')" class="btn-duty" style="background: #007bff">ON DUTY</button>
+                </div>
+                <div class="col-6">
+                    <button onclick="kirimAbsen('OFF DUTY')" class="btn-duty" style="background: #dc3545">OFF DUTY</button>
+                </div>
+            </div>
+            <p id="msg" class="mt-3 small"></p>
         </div>
     </div>
 
     <script>
-        // MASUKKAN CONFIG FIREBASE KAMU DISINI
+        // MASUKKAN CONFIG FIREBASE ANDA DI SINI
         const firebaseConfig = {
-            apiKey: "AIzaSyB3WcRHsaL5VHSSa83Z5FsVDWOJwh8aMdE",
+            apiKey: "AIzaSy...",
             authDomain: "sixninegarage-absensi.firebaseapp.com",
             projectId: "sixninegarage-absensi",
-            storageBucket: "sixninegarage-absensi.firebasestorage.app",
-            appId: "1:336451706133:web:4d4363d052ff280cef9d1c",
-            measurementId: "G-J397FE6WLQ"
+            storageBucket: "sixninegarage-absensi.appspot.com",
+            messagingSenderId: "...",
+            appId: "..."
         };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const scriptURL = 'PASTE_URL_WEB_APP_GOOGLE_SHEETS_KAMU';
+        const scriptURL = 'PASTE_URL_WEB_APP_GOOGLE_SHEETS_ANDA';
 
-        // Logika Auth & Absen
         function toggleAuth() {
-            document.getElementById('namaLengkap').classList.toggle('hidden');
+            const isLogin = document.getElementById('btnReg').classList.contains('hidden');
+            document.getElementById('regFields').classList.toggle('hidden');
             document.getElementById('btnLogin').classList.toggle('hidden');
             document.getElementById('btnReg').classList.toggle('hidden');
-            document.getElementById('linkAuth').innerText = "Sudah punya akun? Login";
+            document.getElementById('logNama').classList.toggle('hidden');
+            document.getElementById('linkAuth').innerText = isLogin ? "Kembali ke Login" : "Daftar Karyawan Baru";
         }
 
-        function register() {
-            const email = document.getElementById('email').value;
+        // Trik: Nama diubah jadi format email secara otomatis agar Firebase bisa memproses
+        function formatEmail(nama) { return nama.toLowerCase().replace(/\s+/g, '') + "@sixnine.com"; }
+
+        function handleRegister() {
+            const nama = document.getElementById('regNama').value;
             const pass = document.getElementById('pass').value;
-            const nama = document.getElementById('namaLengkap').value;
-            auth.createUserWithEmailAndPassword(email, pass).then(res => {
-                res.user.updateProfile({displayName: nama});
-                alert("Berhasil! Silakan Login.");
+            if(!nama || !pass) return alert("Isi semua data!");
+            
+            auth.createUserWithEmailAndPassword(formatEmail(nama), pass).then(res => {
+                res.user.updateProfile({ displayName: nama });
+                alert("Pendaftaran Berhasil!");
                 location.reload();
             }).catch(e => alert(e.message));
         }
 
-        function login() {
-            auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('pass').value)
-            .catch(e => alert(e.message));
+        function handleLogin() {
+            const nama = document.getElementById('logNama').value;
+            const pass = document.getElementById('pass').value;
+            auth.signInWithEmailAndPassword(formatEmail(nama), pass).catch(e => alert("Nama atau PIN salah!"));
         }
 
         auth.onAuthStateChanged(user => {
             if(user) {
                 document.getElementById('authBox').classList.add('hidden');
                 document.getElementById('dashBox').classList.remove('hidden');
-                document.getElementById('userHello').innerText = user.displayName;
+                document.getElementById('userName').innerText = user.displayName;
+                // Ambil status terakhir user dari localStorage (opsional)
+                const lastStatus = localStorage.getItem('status_' + user.uid);
+                if(lastStatus) updateUIStatus(lastStatus);
             }
         });
 
-        function logout() { auth.signOut(); location.reload(); }
-
-        function updateJam() {
-            const n = new Date();
-            document.getElementById('jam').innerText = n.toLocaleTimeString('id-ID', {hour12:false, timeZone:'Asia/Jakarta'});
-            document.getElementById('tgl').innerText = n.toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long'});
+        function updateUIStatus(status) {
+            const icon = document.getElementById('statusIcon');
+            icon.innerText = status;
+            if(status === 'ON DUTY') {
+                icon.className = "status-indicator on-style";
+            } else {
+                icon.className = "status-indicator off-style";
+            }
         }
-        setInterval(updateJam, 1000);
 
-        function absen(status) {
-            const u = auth.currentUser;
-            const payload = {
-                email: u.email, nama: u.displayName,
+        function kirimAbsen(status) {
+            const user = auth.currentUser;
+            updateUIStatus(status);
+            localStorage.setItem('status_' + user.uid, status);
+            
+            const data = {
+                email: user.email, nama: user.displayName,
                 tanggal: document.getElementById('tgl').innerText,
                 waktu: document.getElementById('jam').innerText, status: status
             };
-            fetch(scriptURL, { method: 'POST', body: JSON.stringify(payload) })
-            .then(() => alert("Absen " + status + " Berhasil!"));
+
+            fetch(scriptURL, { method: 'POST', body: JSON.stringify(data) })
+            .then(() => { document.getElementById('msg').innerText = "Status Berhasil Diperbarui!"; });
         }
+
+        function updateJam() {
+            const n = new Date();
+            document.getElementById('jam').innerText = n.toLocaleTimeString('id-ID', {hour12:false});
+            document.getElementById('tgl').innerText = n.toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+        }
+        setInterval(updateJam, 1000);
+        function logout() { auth.signOut(); location.reload(); }
     </script>
 </body>
 </html>
