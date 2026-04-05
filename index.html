@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SixNine Garage - Premium</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+    <style>
+        body { background: #0f0c29; color: white; font-family: sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .card-sixnine { background: #16213e; padding: 30px; border-radius: 20px; width: 100%; max-width: 400px; border: 1px solid #00d1ff; box-shadow: 0 0 20px rgba(0, 209, 255, 0.2); }
+        .btn-duty { height: 60px; font-weight: bold; width: 100%; border-radius: 12px; margin-top: 15px; border: none; color: white; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="card-sixnine text-center">
+        <div id="authBox">
+            <h2 class="fw-bold text-info">LOGIN SYSTEM</h2>
+            <input type="email" id="email" class="form-control mb-2 mt-4" placeholder="Email Mekanik">
+            <input type="password" id="pass" class="form-control mb-2" placeholder="Password">
+            <input type="text" id="namaLengkap" class="form-control mb-2 hidden" placeholder="Nama Lengkap">
+            
+            <button onclick="login()" id="btnLogin" class="btn btn-info w-100 mt-2">MASUK</button>
+            <button onclick="register()" id="btnReg" class="btn btn-success w-100 mt-2 hidden">DAFTAR AKUN</button>
+            <a href="#" onclick="toggleAuth()" id="linkAuth" class="small d-block mt-3 text-secondary text-decoration-none">Belum punya akun? Daftar</a>
+        </div>
+
+        <div id="dashBox" class="hidden">
+            <h3 id="userHello" class="text-info fw-bold">Halo!</h3>
+            <h1 id="jam" class="display-5 fw-bold">00:00:00</h1>
+            <p id="tgl" class="text-secondary"></p>
+            <hr>
+            <button onclick="absen('ON DUTY')" class="btn-duty" style="background:#007bff">🕒 ON DUTY</button>
+            <button onclick="absen('OFF DUTY')" class="btn-duty" style="background:#dc3545">🌙 OFF DUTY</button>
+            <button onclick="logout()" class="btn btn-sm btn-outline-danger mt-4">Log Out</button>
+        </div>
+    </div>
+
+    <script>
+        // MASUKKAN CONFIG FIREBASE KAMU DISINI
+        const firebaseConfig = {
+            apiKey: "PASTE_API_KEY_KAMU",
+            authDomain: "sixnine-absensi.firebaseapp.com",
+            projectId: "sixnine-absensi",
+            storageBucket: "sixnine-absensi.appspot.com",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const scriptURL = 'PASTE_URL_WEB_APP_GOOGLE_SHEETS_KAMU';
+
+        // Logika Auth & Absen
+        function toggleAuth() {
+            document.getElementById('namaLengkap').classList.toggle('hidden');
+            document.getElementById('btnLogin').classList.toggle('hidden');
+            document.getElementById('btnReg').classList.toggle('hidden');
+            document.getElementById('linkAuth').innerText = "Sudah punya akun? Login";
+        }
+
+        function register() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
+            const nama = document.getElementById('namaLengkap').value;
+            auth.createUserWithEmailAndPassword(email, pass).then(res => {
+                res.user.updateProfile({displayName: nama});
+                alert("Berhasil! Silakan Login.");
+                location.reload();
+            }).catch(e => alert(e.message));
+        }
+
+        function login() {
+            auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('pass').value)
+            .catch(e => alert(e.message));
+        }
+
+        auth.onAuthStateChanged(user => {
+            if(user) {
+                document.getElementById('authBox').classList.add('hidden');
+                document.getElementById('dashBox').classList.remove('hidden');
+                document.getElementById('userHello').innerText = user.displayName;
+            }
+        });
+
+        function logout() { auth.signOut(); location.reload(); }
+
+        function updateJam() {
+            const n = new Date();
+            document.getElementById('jam').innerText = n.toLocaleTimeString('id-ID', {hour12:false, timeZone:'Asia/Jakarta'});
+            document.getElementById('tgl').innerText = n.toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long'});
+        }
+        setInterval(updateJam, 1000);
+
+        function absen(status) {
+            const u = auth.currentUser;
+            const payload = {
+                email: u.email, nama: u.displayName,
+                tanggal: document.getElementById('tgl').innerText,
+                waktu: document.getElementById('jam').innerText, status: status
+            };
+            fetch(scriptURL, { method: 'POST', body: JSON.stringify(payload) })
+            .then(() => alert("Absen " + status + " Berhasil!"));
+        }
+    </script>
+</body>
+</html>
