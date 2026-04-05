@@ -51,7 +51,7 @@
             <h1 id="jam" class="display-6 fw-bold">00:00:00</h1>
             <p id="tgl" class="small text-secondary"></p>
 
-            <div class="row g-2">
+            <div id="btnContainer" class="mt-3">
                 <div class="col-6">
                     <button onclick="kirimAbsen('ON DUTY')" class="btn-duty" style="background: #007bff">ON DUTY</button>
                 </div>
@@ -109,26 +109,42 @@
         }
 
         auth.onAuthStateChanged(user => {
-            if(user) {
-                document.getElementById('authBox').classList.add('hidden');
-                document.getElementById('dashBox').classList.remove('hidden');
-                document.getElementById('userName').innerText = user.displayName;
-                // Ambil status terakhir user dari localStorage (opsional)
-                const lastStatus = localStorage.getItem('status_' + user.uid);
-                if(lastStatus) updateUIStatus(lastStatus);
-            }
-        });
-
-        function updateUIStatus(status) {
-            const icon = document.getElementById('statusIcon');
-            icon.innerText = status;
-            if(status === 'ON DUTY') {
-                icon.className = "status-indicator on-style";
-            } else {
-                icon.className = "status-indicator off-style";
-            }
-        }
-
+    if(user) {
+        document.getElementById('authBox').classList.add('hidden');
+        document.getElementById('dashBox').classList.remove('hidden');
+        document.getElementById('userName').innerText = user.displayName;
+        
+        // Ambil status terakhir, jika tidak ada default-nya adalah OFF DUTY
+        const lastStatus = localStorage.getItem('status_' + user.uid) || 'OFF DUTY';
+        updateUIStatus(lastStatus);
+    }
+});
+       function updateUIStatus(status) {
+    const icon = document.getElementById('statusIcon');
+    const btnContainer = document.getElementById('btnContainer');
+    
+    if(status === 'ON DUTY') {
+        // Efek Visual Saat ON
+        icon.innerText = "SEDANG BERTUGAS";
+        icon.className = "status-indicator on-style";
+        
+        // Hanya munculkan tombol OFF DUTY
+        btnContainer.innerHTML = `
+            <button onclick="kirimAbsen('OFF DUTY')" class="btn-duty" style="background: #dc3545">
+                🌙 SELESAI TUGAS (OFF DUTY)
+            </button>`;
+    } else {
+        // Efek Visual Saat OFF
+        icon.innerText = "TIDAK BERTUGAS";
+        icon.className = "status-indicator off-style";
+        
+        // Hanya munculkan tombol ON DUTY
+        btnContainer.innerHTML = `
+            <button onclick="kirimAbsen('ON DUTY')" class="btn-duty" style="background: #007bff">
+                🕒 MULAI TUGAS (ON DUTY)
+            </button>`;
+    }
+}
         function kirimAbsen(status) {
             const user = auth.currentUser;
             updateUIStatus(status);
