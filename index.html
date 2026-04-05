@@ -59,18 +59,17 @@
     <script>
         // === KONFIGURASI (JANGAN SAMPAI TERHAPUS TANDA KUTIPNYA) ===
         const firebaseConfig = {
-            apiKey: "AIzaSyB3WcRHsaL5VHSSa83Z5FsVDWOJwh8aMdE",
+            apiKey: "ISI_API_KEY_KAMU",
             authDomain: "sixninegarage-absensi.firebaseapp.com",
             projectId: "sixninegarage-absensi",
-            storageBucket: "sixninegarage-absensi.firebasestorage.app",
-            messagingSenderId: "336451706133",
-            appId: "1:336451706133:web:4d4363d052ff280cef9d1c",
-            measurementId: "G-J397FE6WLQ"
+            storageBucket: "sixninegarage-absensi.appspot.com",
+            messagingSenderId: "ISI_ID_KAMU",
+            appId: "ISI_APP_ID_KAMU"
         };
         
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxRQiRBfQRVZYTwkq93j-pGVTX1ZqMe1o2D1_nC-MsFzOIQr0gZeM4z25L_Ec_asiUv/exec';
+        const scriptURL = 'ISI_LINK_APPS_SCRIPT_GOOGLE_SHEETS_KAMU';
 
         // === LOGIKA AUTH ===
         function toggleAuth() {
